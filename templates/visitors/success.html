@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Visitor Request Submitted - UrbanEase{% endblock %}
+
+{% block auth_content %}
+<div class="auth-wrapper">
+    <div class="auth-card text-center">
+        <div class="auth-logo">
+            <i class="fa-solid fa-circle-check"></i> Submitted
+        </div>
+        <div class="auth-subtitle">
+            Your visitor request has been recorded.
+        </div>
+        <a href="{% url 'create_visitor_request' %}" class="btn auth-btn w-100">
+            Add Another Visitor
+        </a>
+    </div>
+</div>
+{% endblock %}

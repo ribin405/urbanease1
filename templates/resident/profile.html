@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Account Management{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="content-card">
+            <div class="content-card-header bg-light">
+                <h3 class="content-card-title text-primary">
+                    <i class="fa-solid fa-user-gear"></i> Update My Profile Info
+                </h3>
+            </div>
+            <div class="content-card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label fw-bold">First Name</label>
+                            <input type="text" name="first_name" id="first_name" class="form-control border-2 rounded-3" value="{{ profile.user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label fw-bold">Last Name</label>
+                            <input type="text" name="last_name" id="last_name" class="form-control border-2 rounded-3" value="{{ profile.user.last_name }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold">Email Address</label>
+                        <input type="email" name="email" id="email" class="form-control border-2 rounded-3" value="{{ profile.user.email }}" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="apartment_number" class="form-label fw-bold">Apartment Number</label>
+                            <input type="text" name="apartment_number" id="apartment_number" class="form-control border-2 rounded-3" value="{{ profile.apartment_number }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="occupant_type" class="form-label fw-bold">Occupant Type</label>
+                            <select name="occupant_type" id="occupant_type" class="form-select border-2 rounded-3" required>
+                                <option value="Owner" {% if profile.occupant_type == 'Owner' %}selected{% endif %}>Owner</option>
+                                <option value="Tenant" {% if profile.occupant_type == 'Tenant' %}selected{% endif %}>Tenant</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="phone_number" class="form-label fw-bold">Phone Number</label>
+                        <input type="text" name="phone_number" id="phone_number" class="form-control border-2 rounded-3" value="{{ profile.phone_number }}" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100 py-2.5">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Profile Details
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

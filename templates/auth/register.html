@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resident Registration - UrbanEase{% endblock %}
+
+{% block auth_content %}
+<div class="auth-wrapper">
+    <div class="auth-card" style="max-width: 600px;">
+        <div class="auth-logo">
+            <i class="fa-solid fa-user-plus"></i> UrbanEase
+        </div>
+        <div class="auth-subtitle">
+            Resident Portal Registration
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger border-0 rounded-3 text-center mb-4 py-2" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="first_name" class="auth-form-label">First Name</label>
+                    <input type="text" name="first_name" id="first_name" class="form-control auth-form-control" placeholder="John" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="last_name" class="auth-form-label">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" class="form-control auth-form-control" placeholder="Doe" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="username" class="auth-form-label">Username</label>
+                    <input type="text" name="username" id="username" class="form-control auth-form-control" placeholder="john_doe" required autocomplete="username">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="auth-form-label">Email Address</label>
+                    <input type="email" name="email" id="email" class="form-control auth-form-control" placeholder="john@example.com" required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="apartment_number" class="auth-form-label">Apartment Number</label>
+                    <input type="text" name="apartment_number" id="apartment_number" class="form-control auth-form-control" placeholder="e.g. A-402" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="occupant_type" class="auth-form-label">Occupant Type</label>
+                    <select name="occupant_type" id="occupant_type" class="form-select auth-form-control" required>
+                        <option value="Owner">Owner</option>
+                        <option value="Tenant">Tenant</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="phone_number" class="auth-form-label">Phone Number</label>
+                    <input type="text" name="phone_number" id="phone_number" class="form-control auth-form-control" placeholder="e.g. 9876543210" required>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <label for="password" class="auth-form-label">Password</label>
+                    <input type="password" name="password" id="password" class="form-control auth-form-control" placeholder="Create strong password" required autocomplete="new-password">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn auth-btn w-100 mb-3">
+                <i class="fa-solid fa-user-check"></i> Register Account
+            </button>
+            
+            <div class="text-center mt-2">
+                <span class="text-muted">Already have an account? </span>
+                <a href="{% url 'login' %}" class="auth-link">Sign In</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

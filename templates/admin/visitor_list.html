@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Visitor Master Control Logs{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="content-card-header bg-light">
+        <h3 class="content-card-title text-primary">
+            <i class="fa-solid fa-address-book"></i> Society Master Visitor Activity Ledger
+        </h3>
+    </div>
+    <div class="content-card-body">
+        {% if visitors_list %}
+            <div class="table-responsive">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>Visitor</th>
+                            <th>Apartment & Host</th>
+                            <th>Purpose</th>
+                            <th>Expected Entry</th>
+                            <th>Pass Status</th>
+                            <th>Actual Entry</th>
+                            <th>Actual Exit</th>
+                            <th>Approved By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visitor in visitors_list %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ visitor.visitor_name }}</div>
+                                <small class="text-muted"><i class="fa-solid fa-phone fa-xs"></i> {{ visitor.phone_number }}</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold">Apt {{ visitor.resident.resident_profile.apartment_number }}</div>
+                                <small class="text-muted">{{ visitor.resident.first_name }} {{ visitor.resident.last_name }}</small>
+                            </td>
+                            <td>{{ visitor.purpose }}</td>
+                            <td>
+                                <div>{{ visitor.expected_entry|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ visitor.expected_entry|date:"h:i A" }}</small>
+                            </td>
+                            <td>
+                                <span class="custom-badge {% if visitor.status == 'Pre-Registered' %}badge-preregistered{% elif visitor.status == 'Approved' %}badge-approved{% elif visitor.status == 'Checked In' %}badge-checkin{% elif visitor.status == 'Checked Out' %}badge-checkout{% else %}badge-rejected{% endif %}">
+                                    {{ visitor.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if visitor.actual_entry_time %}
+                                    <div class="fw-bold text-success"><i class="fa-solid fa-right-to-bracket text-xs"></i> {{ visitor.actual_entry_time|date:"h:i A" }}</div>
+                                    <small class="text-muted">{{ visitor.actual_entry_time|date:"M d, Y" }}</small>
+                                {% else %}
+                                    <span class="text-muted small">Not Checked In</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if visitor.actual_exit_time %}
+                                    <div class="fw-bold text-danger"><i class="fa-solid fa-right-from-bracket text-xs"></i> {{ visitor.actual_exit_time|date:"h:i A" }}</div>
+                                    <small class="text-muted">{{ visitor.actual_exit_time|date:"M d, Y" }}</small>
+                                {% else %}
+                                    <span class="text-muted small">Not Checked Out</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if visitor.approved_by %}
+                                    <div class="small fw-bold"><i class="fa-solid fa-user-shield"></i> {{ visitor.approved_by.username }}</div>
+                                    <small class="text-muted">Guard</small>
+                                {% else %}
+                                    <span class="text-muted small">System pass</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="fa-solid fa-address-book fa-3x mb-3 text-secondary"></i>
+                <p class="mb-0">No visitor records found in society databases.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

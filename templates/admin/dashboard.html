@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Admin Control Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Active Emergency alerts raised in the society -->
+{% if active_alerts %}
+    {% for alert in active_alerts %}
+    <div class="alert-banner-emergency animate-pulse">
+        <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="alert-emergency-indicator"></span>
+                <div>
+                    <h5 class="mb-1 text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> UNRESOLVED EMERGENCY: {{ alert.get_alert_type_display }}</h5>
+                    <p class="mb-0 text-dark">
+                        Raised by <strong>{{ alert.raised_by.username }}</strong> (Apt {{ alert.raised_by.resident_profile.apartment_number }}) at {{ alert.created_at|date:"h:i A" }}.
+                        {% if alert.description %}<br>Details: <em>"{{ alert.description }}"</em>{% endif %}
+                    </p>
+                </div>
+            </div>
+            <a href="{% url 'admin_resolve_alert' alert.pk %}" class="btn btn-sm btn-success rounded-3 fw-bold px-3 py-2">
+                <i class="fa-solid fa-check-double"></i> Mark Resolved
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Metrics Cards Grid -->
+<div class="dashboard-grid">
+    <div class="stat-card primary">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-card-value">{{ residents_count }}</div>
+        <div class="stat-card-label">Total Society Residents</div>
+    </div>
+    
+    <div class="stat-card success">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div class="stat-card-value">{{ security_count }}</div>
+        <div class="stat-card-label">Active Security Personnel</div>
+    </div>
+
+    <div class="stat-card danger">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <div class="stat-card-value">{{ active_alerts.count }}</div>
+        <div class="stat-card-label">Active Alerts</div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Maintenance Categories Bar Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="content-card h-100">
+            <div class="content-card-header bg-light">
+                <h3 class="content-card-title text-primary">
+                    <i class="fa-solid fa-chart-column"></i> Maintenance Requests by Category
+                </h3>
+            </div>
+            <div class="content-card-body d-flex flex-column align-items-center justify-content-center">
+                <div style="width: 100%; max-height: 280px; position: relative;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visitor Status Doughnut Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="content-card h-100">
+            <div class="content-card-header bg-light">
+                <h3 class="content-card-title text-primary">
+                    <i class="fa-solid fa-chart-pie"></i> Visitor Pass Distributions
+                </h3>
+            </div>
+            <div class="content-card-body d-flex flex-column align-items-center justify-content-center">
+                <div style="width: 100%; max-height: 280px; position: relative;" class="d-flex justify-content-center">
+                    <canvas id="visitorAdminChart" style="max-width: 250px; max-height: 280px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // ==========================================
+        // Chart 1: Maintenance Categories
+        // ==========================================
+        const catCtx = document.getElementById('categoryChart').getContext('2d');
+        
+        // Parse maintenance categories counts
+        const plumbing = parseInt("{{ category_data.Plumbing|default:0 }}");
+        const electrical = parseInt("{{ category_data.Electrical|default:0 }}");
+        const lift = parseInt("{{ category_data.Lift|default:0 }}");
+        const carpentry = parseInt("{{ category_data.Carpentry|default:0 }}");
+        const others = parseInt("{{ category_data.Others|default:0 }}");
+        
+        new Chart(catCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Plumbing', 'Electrical', 'Lift Issues', 'Carpentry', 'Others'],
+                datasets: [{
+                    label: 'Active Tickets',
+                    data: [plumbing, electrical, lift, carpentry, others],
+                    backgroundColor: [
+                        '#60a5fa', // Blue
+                        '#fbbf24', // Amber
+                        '#f87171', // Red
+                        '#34d399', // Green
+                        '#a78bfa'  // Purple
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+
+        // ==========================================
+        // Chart 2: Visitor Statuses
+        // ==========================================
+        const visCtx = document.getElementById('visitorAdminChart').getContext('2d');
+        
+        const preRegistered = parseInt("{{ visitor_stats.pre_registered|default:0 }}");
+        const approved = parseInt("{{ visitor_stats.approved|default:0 }}");
+        const checkedIn = parseInt("{{ visitor_stats.checked_in|default:0 }}");
+        const checkedOut = parseInt("{{ visitor_stats.checked_out|default:0 }}");
+        const rejected = parseInt("{{ visitor_stats.rejected|default:0 }}");
+        
+        const totalVis = preRegistered + approved + checkedIn + checkedOut + rejected;
+        
+        if (totalVis === 0) {
+            new Chart(visCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No Activity Registered'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#e2e8f0']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        } else {
+            new Chart(visCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pre-Registered', 'Approved', 'Checked In', 'Checked Out', 'Rejected'],
+                    datasets: [{
+                        data: [preRegistered, approved, checkedIn, checkedOut, rejected],
+                        backgroundColor: [
+                            '#6366f1', // Indigo
+                            '#10b981', // Emerald Green
+                            '#06b6d4', // Cyan
+                            '#64748b', // Slate
+                            '#f43f5e'  // Rose Red
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: 'Outfit', size: 11 },
+                                boxWidth: 10
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

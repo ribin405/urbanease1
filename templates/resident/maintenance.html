@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Maintenance Operations{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Log Request Form -->
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3 class="content-card-title">
+                    <i class="fa-solid fa-file-signature text-primary"></i> Create Request
+                </h3>
+            </div>
+            <div class="content-card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-bold">Issue Title</label>
+                        <input type="text" name="title" id="title" class="form-control border-2 rounded-3" placeholder="e.g. Bathroom pipe leakage" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label fw-bold">Category</label>
+                        <select name="category" id="category" class="form-select border-2 rounded-3">
+                            {% for key, val in categories %}
+                                <option value="{{ key }}">{{ val }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="priority" class="form-label fw-bold">Priority Level</label>
+                        <select name="priority" id="priority" class="form-select border-2 rounded-3">
+                            {% for key, val in priorities %}
+                                <option value="{{ key }}" {% if key == 'Medium' %}selected{% endif %}>{{ val }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-bold">Detailed Description</label>
+                        <textarea name="description" id="description" rows="4" class="form-control border-2 rounded-3" placeholder="Explain the issue in detail..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100 py-2.5">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Submit Request
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request History -->
+    <div class="col-lg-8">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3 class="content-card-title">
+                    <i class="fa-solid fa-clock-rotate-left text-secondary"></i> Request History
+                </h3>
+            </div>
+            <div class="content-card-body">
+                {% if requests_list %}
+                    <div class="table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Issue Details</th>
+                                    <th>Priority</th>
+                                    <th>Date Logged</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in requests_list %}
+                                <tr>
+                                    <td><strong>#{{ req.id }}</strong></td>
+                                    <td>
+                                        <div class="fw-bold">{{ req.title }}</div>
+                                        <div class="text-muted small text-truncate" style="max-width: 250px;">{{ req.description }}</div>
+                                        <span class="badge bg-light text-dark border mt-1">{{ req.category }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="custom-badge {% if req.priority == 'High' %}badge-priority-high{% elif req.priority == 'Medium' %}badge-priority-medium{% else %}badge-priority-low{% endif %}">
+                                            {{ req.priority }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div>{{ req.created_at|date:"M d, Y" }}</div>
+                                        <small class="text-muted">{{ req.created_at|date:"h:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="custom-badge {% if req.status == 'Pending' %}badge-pending{% elif req.status == 'In Progress' %}badge-progress{% else %}badge-resolved{% endif %}">
+                                            {{ req.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fa-solid fa-screwdriver-wrench fa-3x mb-3 text-secondary"></i>
+                        <p class="mb-0">No maintenance requests logged yet. If something breaks, register it here!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Visitor Gate Logs{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="content-card-header bg-light">
+        <h3 class="content-card-title text-primary">
+            <i class="fa-solid fa-list-check"></i> Complete Visitor Entry Audit Log
+        </h3>
+    </div>
+    <div class="content-card-body">
+        {% if logs %}
+            <div class="table-responsive">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>Visitor</th>
+                            <th>Apartment</th>
+                            <th>Purpose</th>
+                            <th>Expected Entry</th>
+                            <th>Status</th>
+                            <th>Gate Log In</th>
+                            <th>Gate Log Out</th>
+                            <th>Approved By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ log.visitor_name }}</div>
+                                <small class="text-muted"><i class="fa-solid fa-phone fa-xs"></i> {{ log.phone_number }}</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold">Apt {{ log.resident.resident_profile.apartment_number }}</div>
+                                <small class="text-muted">{{ log.resident.first_name }} {{ log.resident.last_name }}</small>
+                            </td>
+                            <td>{{ log.purpose }}</td>
+                            <td>
+                                <div>{{ log.expected_entry|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ log.expected_entry|date:"h:i A" }}</small>
+                            </td>
+                            <td>
+                                <span class="custom-badge {% if log.status == 'Pre-Registered' %}badge-preregistered{% elif log.status == 'Approved' %}badge-approved{% elif log.status == 'Checked In' %}badge-checkin{% elif log.status == 'Checked Out' %}badge-checkout{% else %}badge-rejected{% endif %}">
+                                    {{ log.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if log.actual_entry_time %}
+                                    <div class="fw-bold text-success"><i class="fa-solid fa-right-to-bracket"></i> {{ log.actual_entry_time|date:"h:i A" }}</div>
+                                    <small class="text-muted">{{ log.actual_entry_time|date:"d M Y" }}</small>
+                                {% else %}
+                                    <span class="text-muted small">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if log.actual_exit_time %}
+                                    <div class="fw-bold text-danger"><i class="fa-solid fa-right-from-bracket"></i> {{ log.actual_exit_time|date:"h:i A" }}</div>
+                                    <small class="text-muted">{{ log.actual_exit_time|date:"d M Y" }}</small>
+                                {% else %}
+                                    <span class="text-muted small">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if log.approved_by %}
+                                    <div class="small fw-bold"><i class="fa-solid fa-user-shield"></i> {{ log.approved_by.username }}</div>
+                                {% else %}
+                                    <span class="text-muted small">System pass</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="fa-solid fa-clipboard-list fa-3x mb-3 text-secondary"></i>
+                <p class="mb-0">No visitor gate logs found in the society record.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

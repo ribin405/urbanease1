@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Resident Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Active Emergency alerts raised in the society -->
+{% if active_alerts %}
+    {% for alert in active_alerts %}
+    <div class="alert-banner-emergency animate-pulse">
+        <div class="d-flex align-items-center gap-3">
+            <span class="alert-emergency-indicator"></span>
+            <div>
+                <h5 class="mb-1 text-danger fw-bold"><i class="fa-solid fa-circle-nodes"></i> ACTIVE EMERGENCY: {{ alert.get_alert_type_display }}</h5>
+                <p class="mb-0 text-dark">
+                    Raised by <strong>{{ alert.raised_by.username }}</strong> (Apt {{ alert.raised_by.resident_profile.apartment_number }}) at {{ alert.created_at|date:"h:i A" }}.
+                    {% if alert.description %}<br><em>"{{ alert.description }}"</em>{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Quick Statistics Grid -->
+<div class="dashboard-grid">
+    <div class="stat-card primary">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+        <div class="stat-card-value">{{ total_maintenance }}</div>
+        <div class="stat-card-label">My Maintenance Requests</div>
+    </div>
+    
+    <div class="stat-card warning">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div class="stat-card-value">{{ pending_maintenance }}</div>
+        <div class="stat-card-label">Pending Issues</div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-user-check"></i>
+        </div>
+        <div class="stat-card-value">{{ total_visitors }}</div>
+        <div class="stat-card-label">Registered Visitors</div>
+    </div>
+
+    <div class="stat-card secondary">
+        <div class="stat-card-icon">
+            <i class="fa-solid fa-door-open"></i>
+        </div>
+        <div class="stat-card-value">Apt {{ profile.apartment_number }}</div>
+        <div class="stat-card-label">Occupant Type: {{ profile.get_occupant_type_display }}</div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Maintenance Section -->
+    <div class="col-lg-6">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3 class="content-card-title">
+                    <i class="fa-solid fa-circle-exclamation text-primary"></i> Recent Maintenance Issues
+                </h3>
+                <a href="{% url 'resident_maintenance' %}" class="btn btn-sm btn-outline-primary rounded-3">View All</a>
+            </div>
+            <div class="content-card-body">
+                {% if recent_requests %}
+                    <div class="table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in recent_requests %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ req.title }}</div>
+                                        <small class="text-muted">{{ req.category }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="custom-badge {% if req.priority == 'High' %}badge-priority-high{% elif req.priority == 'Medium' %}badge-priority-medium{% else %}badge-priority-low{% endif %}">
+                                            {{ req.priority }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="custom-badge {% if req.status == 'Pending' %}badge-pending{% elif req.status == 'In Progress' %}badge-progress{% else %}badge-resolved{% endif %}">
+                                            {{ req.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fa-solid fa-check-circle fa-2x mb-2 text-success"></i>
+                        <p class="mb-0">No active maintenance issues. Everything looks good!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Visitors Section -->
+    <div class="col-lg-6">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3 class="content-card-title">
+                    <i class="fa-solid fa-users text-success"></i> Recent Visitor Logs
+                </h3>
+                <a href="{% url 'resident_visitors' %}" class="btn btn-sm btn-outline-success rounded-3">Register Visitor</a>
+            </div>
+            <div class="content-card-body">
+                {% if recent_visitors %}
+                    <div class="table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Visitor</th>
+                                    <th>Expected Entry</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visitor in recent_visitors %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ visitor.visitor_name }}</div>
+                                        <small class="text-muted">For: {{ visitor.purpose }}</small>
+                                    </td>
+                                    <td>
+                                        <div>{{ visitor.expected_entry|date:"M d" }}</div>
+                                        <small class="text-muted">{{ visitor.expected_entry|date:"h:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="custom-badge {% if visitor.status == 'Pre-Registered' %}badge-preregistered{% elif visitor.status == 'Approved' %}badge-approved{% elif visitor.status == 'Checked In' %}badge-checkin{% elif visitor.status == 'Checked Out' %}badge-checkout{% else %}badge-rejected{% endif %}">
+                                            {{ visitor.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fa-solid fa-user-slash fa-2x mb-2"></i>
+                        <p class="mb-0">No visitors pre-registered yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

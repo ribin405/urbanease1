@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Security Guard Console{% endblock %}
+
+{% block content %}
+
+<!-- Active Emergency alerts raised in the society -->
+{% if active_alerts %}
+    {% for alert in active_alerts %}
+    <div class="alert-banner-emergency animate-pulse">
+        <div class="d-flex align-items-center gap-3">
+            <span class="alert-emergency-indicator"></span>
+            <div>
+                <h5 class="mb-1 text-danger fw-bold"><i class="fa-solid fa-circle-exclamation"></i> CRITICAL ACTIVE EMERGENCY: {{ alert.get_alert_type_display }}</h5>
+                <p class="mb-0 text-dark">
+                    Raised by <strong>{{ alert.raised_by.username }}</strong> in <strong>Apartment {{ alert.raised_by.resident_profile.apartment_number }}</strong>.
+                    Contact: <strong>{{ alert.raised_by.resident_profile.phone_number }}</strong>.
+                    Time: {{ alert.created_at|date:"h:i A" }}.
+                    {% if alert.description %}<br>Details: <em>"{{ alert.description }}"</em>{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    <!-- Today's Operations -->
+    <div class="col-lg-8">
+        <div class="content-card">
+            <div class="content-card-header bg-light">
+                <h3 class="content-card-title text-primary">
+                    <i class="fa-solid fa-shield-halved"></i> Today's Visitor Operations
+                </h3>
+                <span class="badge bg-primary px-3 py-2 rounded-pill">Today: {% now "M d, Y" %}</span>
+            </div>
+            <div class="content-card-body">
+                {% if visitors %}
+                    <div class="table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Visitor Details</th>
+                                    <th>Apartment</th>
+                                    <th>Purpose</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Gate Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for v in visitors %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ v.visitor_name }}</div>
+                                        <small class="text-muted"><i class="fa-solid fa-phone fa-xs"></i> {{ v.phone_number }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">Apt {{ v.resident.resident_profile.apartment_number }}</div>
+                                        <small class="text-muted">{{ v.resident.first_name }} {{ v.resident.last_name }}</small>
+                                    </td>
+                                    <td>{{ v.purpose }}</td>
+                                    <td>
+                                        <span class="custom-badge {% if v.status == 'Pre-Registered' %}badge-preregistered{% elif v.status == 'Approved' %}badge-approved{% elif v.status == 'Checked In' %}badge-checkin{% elif v.status == 'Checked Out' %}badge-checkout{% else %}badge-rejected{% endif %}">
+                                            {{ v.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            {% if v.status == 'Pre-Registered' %}
+                                                <a href="{% url 'security_visitor_action' v.pk 'approve' %}" class="btn btn-sm btn-success rounded-3"><i class="fa-solid fa-circle-check"></i> Approve</a>
+                                                <a href="{% url 'security_visitor_action' v.pk 'reject' %}" class="btn btn-sm btn-danger rounded-3"><i class="fa-solid fa-circle-xmark"></i> Reject</a>
+                                            {% elif v.status == 'Approved' %}
+                                                <a href="{% url 'security_visitor_action' v.pk 'checkin' %}" class="btn btn-sm btn-primary rounded-3"><i class="fa-solid fa-right-to-bracket"></i> Check In</a>
+                                            {% elif v.status == 'Checked In' %}
+                                                <a href="{% url 'security_visitor_action' v.pk 'checkout' %}" class="btn btn-sm btn-dark rounded-3"><i class="fa-solid fa-right-from-bracket"></i> Check Out</a>
+                                            {% else %}
+                                                <span class="text-muted small">No action required</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fa-solid fa-id-card fa-3x mb-3 text-secondary"></i>
+                        <p class="mb-0">No visitors scheduled or pre-registered for today.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Quick Gate logs summary -->
+        <div class="content-card">
+            <div class="content-card-header bg-light">
+                <h3 class="content-card-title text-secondary">
+                    <i class="fa-solid fa-bolt"></i> Quick Actions
+                </h3>
+            </div>
+            <div class="content-card-body">
+                <div class="d-flex flex-wrap gap-3">
+                    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#walkinModal">
+                        <i class="fa-solid fa-plus me-1"></i> Register On-the-spot Walk-in Visitor
+                    </button>
+                    <a href="{% url 'security_gate_logs' %}" class="btn btn-outline-secondary rounded-3">
+                        <i class="fa-solid fa-list-check me-1"></i> View Historical Gate Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Analytics & Chart -->
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="content-card-header bg-light">
+                <h3 class="content-card-title text-primary">
+                    <i class="fa-solid fa-chart-pie"></i> Visitor Gate Analytics
+                </h3>
+            </div>
+            <div class="content-card-body text-center">
+                <div style="max-height: 250px; margin: 0 auto 20px;" class="d-flex justify-content-center">
+                    <canvas id="visitorChart" style="max-width: 250px; max-height: 250px;"></canvas>
+                </div>
+                <div class="text-start mt-3 small text-muted">
+                    <i class="fa-solid fa-circle-info"></i> Reflects society gate activity distributions for all pre-registered and walk-in visitors.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Register Walk-in Modal -->
+<div class="modal fade" id="walkinModal" tabindex="-1" aria-labelledby="walkinModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <form action="{% url 'security_walk_in' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white border-0 rounded-top-4 py-3">
+                    <h5 class="modal-title fw-bold" id="walkinModalLabel">
+                        <i class="fa-solid fa-user-plus me-2"></i> Register Gate Walk-in
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="visitor_name" class="form-label fw-bold">Visitor Full Name</label>
+                        <input type="text" name="visitor_name" id="visitor_name" class="form-control border-2 rounded-3" placeholder="e.g. Delivery agent, plumber" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label fw-bold">Visitor Phone Number</label>
+                        <input type="text" name="phone_number" id="phone_number" class="form-control border-2 rounded-3" placeholder="e.g. 9876543210" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="purpose" class="form-label fw-bold">Purpose of Entry</label>
+                        <input type="text" name="purpose" id="purpose" class="form-control border-2 rounded-3" placeholder="e.g. Zomato Delivery, Gas Repair" required>
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="apartment_number" class="form-label fw-bold">Target Apartment Number</label>
+                        <input type="text" name="apartment_number" id="apartment_number" class="form-control border-2 rounded-3" placeholder="e.g. A-102" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom rounded-3 px-4 py-2">
+                        <i class="fa-solid fa-check me-1"></i> Register & Check In
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('visitorChart').getContext('2d');
+        
+        // Dynamic counts parsed from view backend stats
+        const preRegistered = parseInt("{{ visitor_stats.pre_registered|default:0 }}");
+        const approved = parseInt("{{ visitor_stats.approved|default:0 }}");
+        const checkedIn = parseInt("{{ visitor_stats.checked_in|default:0 }}");
+        const checkedOut = parseInt("{{ visitor_stats.checked_out|default:0 }}");
+        const rejected = parseInt("{{ visitor_stats.rejected|default:0 }}");
+        
+        const total = preRegistered + approved + checkedIn + checkedOut + rejected;
+        
+        if (total === 0) {
+            // Render placeholder chart
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No Activity Today'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#e2e8f0']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        } else {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pre-Registered', 'Approved', 'Checked In', 'Checked Out', 'Rejected'],
+                    datasets: [{
+                        data: [preRegistered, approved, checkedIn, checkedOut, rejected],
+                        backgroundColor: [
+                            '#6366f1', // Indigo
+                            '#10b981', // Emerald Green
+                            '#06b6d4', // Cyan
+                            '#64748b', // Slate
+                            '#f43f5e'  // Rose Red
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: 'Outfit',
+                                    size: 11
+                                },
+                                boxWidth: 12
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

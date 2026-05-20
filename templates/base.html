@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UrbanEase - Smart Apartment Management{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Custom Style Sheet -->
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    {% if user.is_authenticated %}
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo">
+                    <i class="fa-solid fa-city"></i> UrbanEase
+                </span>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <!-- Resident Portal Links -->
+                {% if user.role == 'RESIDENT' %}
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'resident_dashboard' %}active{% endif %}">
+                        <a href="{% url 'resident_dashboard' %}">
+                            <i class="fa-solid fa-gauge"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'resident_maintenance' %}active{% endif %}">
+                        <a href="{% url 'resident_maintenance' %}">
+                            <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance
+                        </a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'resident_visitors' %}active{% endif %}">
+                        <a href="{% url 'resident_visitors' %}">
+                            <i class="fa-solid fa-user-plus"></i> Pre-Register Visitor
+                        </a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'resident_profile' %}active{% endif %}">
+                        <a href="{% url 'resident_profile' %}">
+                            <i class="fa-solid fa-user-gear"></i> My Profile
+                        </a>
+                    </li>
+                {% endif %}
+
+                <!-- Security Portal Links -->
+                {% if user.role == 'SECURITY' %}
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'security_dashboard' %}active{% endif %}">
+                        <a href="{% url 'security_dashboard' %}">
+                            <i class="fa-solid fa-shield-halved"></i> Guard Console
+                        </a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'security_gate_logs' %}active{% endif %}">
+                        <a href="{% url 'security_gate_logs' %}">
+                            <i class="fa-solid fa-list-check"></i> Visitor Gate Logs
+                        </a>
+                    </li>
+                {% endif %}
+
+                <!-- Admin Portal Links -->
+                {% if user.role == 'ADMIN' %}
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                        <a href="{% url 'admin_dashboard' %}">
+                            <i class="fa-solid fa-chart-pie"></i> Metrics Control
+                        </a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                        <a href="{% url 'admin_users' %}">
+                            <i class="fa-solid fa-users-gear"></i> User Settings
+                        </a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'admin_maintenance' %}active{% endif %}">
+                        <a href="{% url 'admin_maintenance' %}">
+                            <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance
+                        </a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'admin_visitors' %}active{% endif %}">
+                        <a href="{% url 'admin_visitors' %}">
+                            <i class="fa-solid fa-address-book"></i> Visitor Tracking
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ user.first_name }} {{ user.last_name }}</div>
+                        <div class="sidebar-user-role">{{ user.role }}</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <header class="top-navbar">
+                <h1 class="navbar-page-title">
+                    {% block page_title %}Dashboard{% endblock %}
+                </h1>
+                
+                <div class="navbar-actions">
+                    <span class="text-muted d-none d-md-inline-block me-3">
+                        <i class="fa-regular fa-clock"></i> <span id="current-time">{% now "H:i A" %}</span>
+                    </span>
+                    {% if user.role == 'RESIDENT' %}
+                        <!-- Red Pulsing Emergency Button for Resident -->
+                        <button type="button" class="btn btn-danger-custom py-2 px-3 fw-bold animate-pulse" data-bs-toggle="modal" data-bs-target="#emergencyModal">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i> Trigger Alert
+                        </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'logout' %}" class="btn btn-outline-secondary py-2 px-3 border-0">
+                        <i class="fa-solid fa-power-off"></i> Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Notifications & Messages -->
+            <div class="container-fluid px-4 py-3">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible fade show border-0 rounded-4 shadow-sm" role="alert">
+                            <i class="{% if message.tags == 'error' %}fa-solid fa-triangle-exclamation{% else %}fa-solid fa-circle-check{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Main Body Block -->
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% if user.role == 'RESIDENT' %}
+    <!-- Resident Emergency Alert Modal -->
+    <div class="modal fade" id="emergencyModal" tabindex="-1" aria-labelledby="emergencyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <form action="{% url 'resident_alerts' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header bg-danger text-white border-0 rounded-top-4 py-3">
+                        <h5 class="modal-title fw-bold" id="emergencyModalLabel">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i> SOCIETY EMERGENCY SYSTEM
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-toggle="modal" data-bs-target="#emergencyModal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="alert alert-danger rounded-3 border-0" role="alert">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>
+                            <strong>WARNING:</strong> Raising a false emergency alert will result in penalties. Trigger this only for active emergencies.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Emergency Category</label>
+                            <select name="alert_type" class="form-select border-2 rounded-3" required>
+                                <option value="Fire">Fire Alert 🔥</option>
+                                <option value="Medical">Medical Emergency 🚑</option>
+                                <option value="Security">Security Threat 🚨</option>
+                                <option value="Others">Other Emergency ⚠️</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-0">
+                            <label class="form-label fw-bold">Emergency Details (Optional)</label>
+                            <textarea name="description" rows="3" class="form-control border-2 rounded-3" placeholder="Briefly specify details (e.g. Block C Lift Stuck, Apt 405 Fire)"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-3 bg-light rounded-bottom-4">
+                        <button type="button" class="btn btn-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger-custom rounded-3 px-4 py-2 fw-bold">
+                            <i class="fa-solid fa-bell me-1"></i> BROADCAST EMERGENCY
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+        <!-- Auth Layout -->
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Bootstrap 5 JavaScript & Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Custom Main Script -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

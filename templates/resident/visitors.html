@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Visitor Pre-Registration{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Pre-register Form -->
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3 class="content-card-title">
+                    <i class="fa-solid fa-id-card text-success"></i> Pre-Register Visitor
+                </h3>
+            </div>
+            <div class="content-card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="visitor_name" class="form-label fw-bold">Visitor Full Name</label>
+                        <input type="text" name="visitor_name" id="visitor_name" class="form-control border-2 rounded-3" placeholder="e.g. Alice Smith" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label fw-bold">Visitor Phone Number</label>
+                        <input type="text" name="phone_number" id="phone_number" class="form-control border-2 rounded-3" placeholder="e.g. 9876543210" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="purpose" class="form-label fw-bold">Purpose of Visit</label>
+                        <input type="text" name="purpose" id="purpose" class="form-control border-2 rounded-3" placeholder="e.g. Delivery, Guest, Service" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="expected_entry" class="form-label fw-bold">Expected Date & Time</label>
+                        <input type="datetime-local" name="expected_entry" id="expected_entry" class="form-control border-2 rounded-3" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100 py-2.5 bg-success border-success">
+                        <i class="fa-solid fa-user-plus me-1"></i> Register Visitor
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pre-registered Visitors Logs -->
+    <div class="col-lg-8">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3 class="content-card-title">
+                    <i class="fa-solid fa-clipboard-list text-secondary"></i> Visitor Track Records
+                </h3>
+            </div>
+            <div class="content-card-body">
+                {% if visitors_list %}
+                    <div class="table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Visitor Details</th>
+                                    <th>Expected Entry</th>
+                                    <th>Status</th>
+                                    <th>Gate Timestamps</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visitor in visitors_list %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ visitor.visitor_name }}</div>
+                                        <div class="text-muted small"><i class="fa-solid fa-phone fa-xs"></i> {{ visitor.phone_number }}</div>
+                                        <span class="badge bg-light text-dark border mt-1">Purpose: {{ visitor.purpose }}</span>
+                                    </td>
+                                    <td>
+                                        <div>{{ visitor.expected_entry|date:"M d, Y" }}</div>
+                                        <small class="text-muted">{{ visitor.expected_entry|date:"h:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="custom-badge {% if visitor.status == 'Pre-Registered' %}badge-preregistered{% elif visitor.status == 'Approved' %}badge-approved{% elif visitor.status == 'Checked In' %}badge-checkin{% elif visitor.status == 'Checked Out' %}badge-checkout{% else %}badge-rejected{% endif %}">
+                                            {{ visitor.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if visitor.actual_entry_time %}
+                                            <div class="small"><i class="fa-solid fa-right-to-bracket text-success"></i> IN: {{ visitor.actual_entry_time|date:"h:i A (d M)" }}</div>
+                                        {% endif %}
+                                        {% if visitor.actual_exit_time %}
+                                            <div class="small mt-1"><i class="fa-solid fa-right-from-bracket text-danger"></i> OUT: {{ visitor.actual_exit_time|date:"h:i A (d M)" }}</div>
+                                        {% endif %}
+                                        {% if not visitor.actual_entry_time and not visitor.actual_exit_time %}
+                                            <span class="text-muted small">Not arrived at gate yet</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fa-solid fa-user-shield fa-3x mb-3 text-success"></i>
+                        <p class="mb-0">No visitors pre-registered yet. Create entry passes for fast security approvals!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
