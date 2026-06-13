@@ -51,8 +51,29 @@ function stopEmergencyAlarm() {
     }
 }
 
+function startRealtimeClock() {
+    const clock = document.getElementById("current-time");
+    if (!clock) return;
+
+    const formatter = new Intl.DateTimeFormat("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    });
+
+    const updateClock = () => {
+        clock.textContent = formatter.format(new Date()).toUpperCase();
+    };
+
+    updateClock();
+    setInterval(updateClock, 1000);
+}
+
 // Attach listeners on load
 document.addEventListener("DOMContentLoaded", () => {
+    startRealtimeClock();
+
     // If there is an active emergency alert element on the page, trigger alarm!
     const activeEmergencies = document.querySelectorAll(".alert-banner-emergency");
     if (activeEmergencies.length > 0) {

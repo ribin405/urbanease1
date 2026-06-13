@@ -69,6 +69,7 @@
                                         <div class="d-flex justify-content-end gap-2">
                                             {% if v.status == 'Pre-Registered' %}
                                                 <a href="{% url 'security_visitor_action' v.pk 'approve' %}" class="btn btn-sm btn-success rounded-3"><i class="fa-solid fa-circle-check"></i> Approve</a>
+                                                <a href="{% url 'security_visitor_action' v.pk 'checkin' %}" class="btn btn-sm btn-primary rounded-3"><i class="fa-solid fa-right-to-bracket"></i> Check In</a>
                                                 <a href="{% url 'security_visitor_action' v.pk 'reject' %}" class="btn btn-sm btn-danger rounded-3"><i class="fa-solid fa-circle-xmark"></i> Reject</a>
                                             {% elif v.status == 'Approved' %}
                                                 <a href="{% url 'security_visitor_action' v.pk 'checkin' %}" class="btn btn-sm btn-primary rounded-3"><i class="fa-solid fa-right-to-bracket"></i> Check In</a>

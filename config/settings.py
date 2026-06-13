@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'urbanease',
-    'accounts',
-    'visitors',
-    'maintenance',
-    'securityportal',
+    #'accounts',
+    #'visitors',
+    #'maintenance',
+    #'securityportal',
 ]
 
 MIDDLEWARE = [

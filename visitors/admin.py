@@ -1,4 +1,3 @@
 from django.contrib import admin
-from .models import VisitorRequest
 
-admin.site.register(VisitorRequest)
+# Visitor app is deprecated - model removed to avoid conflict with urbanease.VisitorRequest

@@ -24,6 +24,7 @@
                             <th>Gate Log In</th>
                             <th>Gate Log Out</th>
                             <th>Approved By</th>
+                            <th class="text-end">Gate Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,8 +68,23 @@
                                 {% if log.approved_by %}
                                     <div class="small fw-bold"><i class="fa-solid fa-user-shield"></i> {{ log.approved_by.username }}</div>
                                 {% else %}
-                                    <span class="text-muted small">System pass</span>
+                                    <span class="text-muted small">Awaiting action</span>
                                 {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    {% if log.status == 'Pre-Registered' or log.status == 'Approved' %}
+                                        <a href="{% url 'security_visitor_action' log.pk 'checkin' %}?next=security_gate_logs" class="btn btn-sm btn-primary rounded-3">
+                                            <i class="fa-solid fa-right-to-bracket"></i> Check In
+                                        </a>
+                                    {% elif log.status == 'Checked In' %}
+                                        <a href="{% url 'security_visitor_action' log.pk 'checkout' %}?next=security_gate_logs" class="btn btn-sm btn-dark rounded-3">
+                                            <i class="fa-solid fa-right-from-bracket"></i> Check Out
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">No action</span>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}

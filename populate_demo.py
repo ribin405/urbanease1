@@ -3,10 +3,10 @@ import django
 from django.utils import timezone
 from datetime import timedelta
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'urbanease_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from urbanease.models import User, ResidentProfile, SecurityProfile, MaintenanceRequest, VisitorRequest, EmergencyAlert
+from urbanease.models import User, ResidentProfile, SecurityProfile, ManagementProfile, MaintenanceRequest, VisitorRequest, EmergencyAlert
 
 def seed_database():
     print("Starting UrbanEase Database Seeding...")
@@ -18,6 +18,7 @@ def seed_database():
     MaintenanceRequest.objects.all().delete()
     ResidentProfile.objects.all().delete()
     SecurityProfile.objects.all().delete()
+    ManagementProfile.objects.all().delete()
     User.objects.all().delete()
 
     # 2. Create Admin User
@@ -31,6 +32,12 @@ def seed_database():
     )
     admin_user.set_password('admin123')
     admin_user.save()
+    ManagementProfile.objects.create(
+        user=admin_user,
+        department='Society Management',
+        designation='Administrator',
+        phone_number='9000000000'
+    )
 
     # 3. Create Resident Users
     print("Creating Resident Users...")

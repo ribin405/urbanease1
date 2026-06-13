@@ -76,7 +76,6 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     min-height: 100vh;
     background: rgba(246, 249, 251, 0.5);
-    backdrop-filter: blur(2px);
 }
 
 /* Sidebar Styling */
@@ -549,6 +548,30 @@ h1, h2, h3, h4, h5, h6 {
     background: linear-gradient(135deg, #1d4ed8, #0e7490);
     transform: translateY(-2px);
     box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+}
+
+.portal-login-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.portal-login-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 0;
+}
+
+.portal-login-btn.security {
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+}
+
+.portal-login-btn.management {
+    background: linear-gradient(135deg, var(--warning), var(--primary));
 }
 
 .auth-link {

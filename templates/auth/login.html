@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Login - UrbanEase{% endblock %}
+{% block title %}Portal Login - UrbanEase{% endblock %}
 
 {% block auth_content %}
 <div class="auth-wrapper">
@@ -10,7 +10,7 @@
             <i class="fa-solid fa-city"></i> UrbanEase
         </div>
         <div class="auth-subtitle">
-            Smart Society & Apartment Operations
+            Choose your portal and sign in
         </div>
         
         {% if messages %}
@@ -34,9 +34,20 @@
                 <input type="password" name="password" id="password" class="form-control auth-form-control" placeholder="Enter password" required autocomplete="current-password">
             </div>
             
-            <button type="submit" class="btn auth-btn w-100 mb-3">
-                <i class="fa-solid fa-right-to-bracket"></i> Sign In
-            </button>
+            <div class="portal-login-actions">
+                <button type="submit" name="role" value="RESIDENT" class="btn auth-btn portal-login-btn resident">
+                    <i class="fa-solid fa-house-user"></i>
+                    <span>Resident Login</span>
+                </button>
+                <button type="submit" name="role" value="SECURITY" class="btn auth-btn portal-login-btn security">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Security Login</span>
+                </button>
+                <button type="submit" name="role" value="ADMIN" class="btn auth-btn portal-login-btn management">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Management Login</span>
+                </button>
+            </div>
             
             <div class="text-center mt-3">
                 <span class="text-muted">New Resident? </span>
@@ -47,7 +58,7 @@
         <div class="border-top border-secondary mt-4 pt-3 text-center">
             <p class="text-muted small mb-1">Demo Access Credentials:</p>
             <div class="d-flex flex-wrap justify-content-center gap-2 small">
-                <span class="badge bg-secondary p-2">Admin: admin / admin123</span>
+                <span class="badge bg-secondary p-2">Management: admin / admin123</span>
                 <span class="badge bg-secondary p-2">Resident: resident / resident123</span>
                 <span class="badge bg-secondary p-2">Security: guard / guard123</span>
             </div>

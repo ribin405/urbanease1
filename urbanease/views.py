@@ -4,12 +4,29 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Count
-from .models import User, ResidentProfile, SecurityProfile, MaintenanceRequest, VisitorRequest, EmergencyAlert
+from .models import User, ResidentProfile, SecurityProfile, ManagementProfile, MaintenanceRequest, VisitorRequest, EmergencyAlert
 from .decorators import role_required
 
 # ==========================================
 # AUTHENTICATION VIEWS
 # ==========================================
+
+LOGIN_ROLE_LABELS = {
+    'RESIDENT': 'Resident',
+    'SECURITY': 'Security',
+    'ADMIN': 'Management',
+}
+
+def ensure_profile_for_role(user):
+    if user.role == 'ADMIN':
+        ManagementProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'department': 'Society Management',
+                'designation': 'Manager',
+                'phone_number': '',
+            },
+        )
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -18,15 +35,20 @@ def login_view(request):
     if request.method == 'POST':
         u = request.POST.get('username')
         p = request.POST.get('password')
+        requested_role = request.POST.get('role')
         user = authenticate(request, username=u, password=p)
         if user is not None:
+            if requested_role in LOGIN_ROLE_LABELS and user.role != requested_role:
+                messages.error(request, f"Please use the {LOGIN_ROLE_LABELS.get(user.role, 'correct')} login button for this account.")
+                return redirect('login')
+            ensure_profile_for_role(user)
             login(request, user)
             messages.success(request, f"Welcome back, {user.username}!")
             return redirect('login_redirect')
         else:
             messages.error(request, "Invalid username or password.")
             
-    return render(request, 'auth/login.html')
+    return render(request, 'auth/login.html', {'login_roles': LOGIN_ROLE_LABELS})
 
 def register_resident_view(request):
     if request.user.is_authenticated:
@@ -273,6 +295,8 @@ def security_walk_in(request):
 @role_required('SECURITY')
 def security_visitor_action(request, pk, action):
     visitor = get_object_or_404(VisitorRequest, pk=pk)
+    next_page = request.GET.get('next')
+    redirect_target = next_page if next_page in {'security_dashboard', 'security_gate_logs'} else 'security_dashboard'
     
     if action == 'approve':
         visitor.status = 'Approved'
@@ -293,7 +317,7 @@ def security_visitor_action(request, pk, action):
         messages.info(request, f"Visitor {visitor.visitor_name} CHECKED OUT.")
         
     visitor.save()
-    return redirect('security_dashboard')
+    return redirect(redirect_target)
 
 @login_required
 @role_required('SECURITY')

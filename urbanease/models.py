@@ -4,7 +4,7 @@ from django.utils import timezone
 
 class User(AbstractUser):
     ROLE_CHOICES = (
-        ('ADMIN', 'Admin'),
+        ('ADMIN', 'Management'),
         ('RESIDENT', 'Resident'),
         ('SECURITY', 'Security'),
     )
@@ -38,6 +38,15 @@ class SecurityProfile(models.Model):
 
     def __str__(self):
         return f"Guard: {self.user.username} - Gate {self.gate_no}"
+
+class ManagementProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='management_profile')
+    department = models.CharField(max_length=50, default='Society Management')
+    designation = models.CharField(max_length=50, default='Manager')
+    phone_number = models.CharField(max_length=15, blank=True)
+
+    def __str__(self):
+        return f"Management: {self.user.username} - {self.designation}"
 
 class MaintenanceRequest(models.Model):
     CATEGORY_CHOICES = (
