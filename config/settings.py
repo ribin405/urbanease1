@@ -27,11 +27,11 @@ SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-local-developm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DJANGO_DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config(
-    'DJANGO_ALLOWED_HOSTS',
-    default='localhost,127.0.0.1,testserver',
-    cast=Csv(),
-)
+ALLOWED_HOSTS = [
+    "urbanease1.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
